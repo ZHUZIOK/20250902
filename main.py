@@ -42,7 +42,7 @@ ADDRESS_B = ADDRESS_B_KEY.public_key.to_base58check_address()
 TRON_DECIMAL = Decimal("1e6")
 TRON_MINIMUM_BANDWIDTH = Decimal("270000")
 TELEGRAM_BOT = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-TRON = AsyncTron(AsyncHTTPProvider(TRON_API_KEY))
+TRON = AsyncTron(AsyncHTTPProvider(api_key=TRON_API_KEY))
 
 
 class TransactionParameter(BaseModel):
