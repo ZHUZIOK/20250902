@@ -160,15 +160,16 @@ async def send_trx():
     # https://tronscan.org/#/transaction/
     if txID is None:
         await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="❌ 转账失败")
-    text = f"🚀 转账成功 txID: https://shasta-tronscan.on.btfs.io/#/transaction/{txID}"
+    text = f"🚀 转账成功 txID: https://tronscan.org/#/transaction/{txID}"
     await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=text)
 
 
 async def get_now_block():
-    url = "https://api.shasta.trongrid.io/wallet/getnowblock"  # "https://api.trongrid.io/wallet/getnowblock"
+    # "https://api.shasta.trongrid.io/wallet/getnowblock"
+    url = "https://api.trongrid.io/wallet/getnowblock"  # "https://api.trongrid.io/wallet/getnowblock"
     headers = {
         "accept": "application/json",
-        # "TRON-PRO-API-KEY": "67a0ba1d-80f9-4a18-b047-6bb0ec5f9b09",
+        "TRON-PRO-API-KEY": TRON_API_KEY,
     }
     async with aiohttp.ClientSession() as session:
         last_time_block_number: int = 0
@@ -255,16 +256,16 @@ def get_telegram_user_id():
 
 if __name__ == "__main__":
     # logger.remove()
-    # logger.add(
-    #     sink="logs/app.log",
-    #     rotation="1 day",  # 按天切分
-    #     retention="7 days",  # 保留 7 天
-    #     compression="zip",  # 旧日志压缩
-    #     encoding="utf-8",
-    #     enqueue=True,
-    # )
-    # asyncio.run(main())
-    get_telegram_user_id()
+    logger.add(
+        sink="logs/app.log",
+        rotation="1 day",  # 按天切分
+        retention="7 days",  # 保留 7 天
+        compression="zip",  # 旧日志压缩
+        encoding="utf-8",
+        enqueue=True,
+    )
+    asyncio.run(main())
+    # get_telegram_user_id()
 
 
 """
