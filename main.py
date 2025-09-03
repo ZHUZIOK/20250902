@@ -147,36 +147,38 @@ async def send_trx(account_balance: Decimal | None):
     """调用转账"""
     assert RECEIVE_ADDRESS, "RECEIVE_ADDRESS is None."
     assert TELEGRAM_USER_ID, "TELEGRAM_USER_ID is None."
+    try:
+        if account_balance is None:
+            account_balance = await get_trx_balance(ADDRESS_A)
 
-    if account_balance is None:
-        account_balance = await get_trx_balance(ADDRESS_A)
+        if account_balance <= Decimal("0"):
+            return
 
-    if account_balance <= Decimal("0"):
-        return
+        account_bandwidth = await get_account_bandwidth(ADDRESS_A)
+        if account_bandwidth >= TRON_MINIMUM_BANDWIDTH:
+            transaction_sign = TransactionSign(
+                from_address=ADDRESS_A,
+                to_address=RECEIVE_ADDRESS,
+                amount=int(account_balance),
+                sign_key=ADDRESS_B_KEY,
+            )
+        else:
+            transaction_sign = TransactionSign(
+                from_address=ADDRESS_A,
+                to_address=RECEIVE_ADDRESS,
+                amount=int(account_balance - TRON_MINIMUM_BANDWIDTH),
+                sign_key=ADDRESS_B_KEY,
+            )
 
-    account_bandwidth = await get_account_bandwidth(ADDRESS_A)
-    if account_bandwidth >= TRON_MINIMUM_BANDWIDTH:
-        transaction_sign = TransactionSign(
-            from_address=ADDRESS_A,
-            to_address=RECEIVE_ADDRESS,
-            amount=int(account_balance),
-            sign_key=ADDRESS_B_KEY,
-        )
-    else:
-        transaction_sign = TransactionSign(
-            from_address=ADDRESS_A,
-            to_address=RECEIVE_ADDRESS,
-            amount=int(account_balance - TRON_MINIMUM_BANDWIDTH),
-            sign_key=ADDRESS_B_KEY,
-        )
-
-    txID = await transfer_trx(transaction_sign)
-    # https://shasta-tronscan.on.btfs.io/#/transaction/
-    # https://tronscan.org/#/transaction/
-    if txID is None:
-        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="❌ 转账失败")
-    text = f"🚀 转账成功 txID: https://tronscan.org/#/transaction/{txID}"
-    await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=text)
+        txID = await transfer_trx(transaction_sign)
+        # https://shasta-tronscan.on.btfs.io/#/transaction/
+        # https://tronscan.org/#/transaction/
+        if txID is None:
+            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="❌ 转账失败")
+        text = f"🚀 转账成功 txID: https://tronscan.org/#/transaction/{txID}"
+        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=text)
+    except Exception as error:
+        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"❌ 转账失败, 错误:{error}")
 
 
 async def get_now_block():
