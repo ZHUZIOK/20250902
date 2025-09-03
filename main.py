@@ -218,12 +218,10 @@ async def get_now_block():
                     await asyncio.sleep(1.5)
                     a_balance = await get_trx_balance(ADDRESS_A)
                     # 如果获取的余额不等于全局余额则将获取的余额给全局余额
-                    # if a_balance != account_balance:
-                    #     account_balance = a_balance
                     # 如果获取的余额不等于全局余额并且获取的余额小于0.268则提示用户
                     if a_balance != account_balance and a_balance < comparison_amount:
                         account_balance = a_balance
-                        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{a_balance}") # type: ignore
+                        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{Decimal(str(a))}") # type: ignore
                     asyncio.create_task(balance_transfer())  # 自动将余额转出
                     continue
 
@@ -288,7 +286,9 @@ async def main():
     # print("data:", data)
     # account_bandwidth = await get_account_bandwidth("TZ9542FYoCqQ1vdx69o4on8CtoSXnSUfst")
     # print("account_bandwidth:",account_bandwidth)
-    await start()
+    # await start()
+    a = 0.000001
+    print(f"{Decimal(str(a))}")
     ...
 
 
