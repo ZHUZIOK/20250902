@@ -149,7 +149,12 @@ async def send_trx(account_balance: Decimal | None):
     assert TELEGRAM_USER_ID, "TELEGRAM_USER_ID is None."
     try:
         if account_balance is None:
-            account_balance = await get_trx_balance(ADDRESS_A)
+            try:
+                account_balance = await get_trx_balance(ADDRESS_A)
+            except AddressNotFound:
+                # 地址未激活或者地址没钱
+                return
+
 
         if account_balance <= Decimal("0"):
             return
