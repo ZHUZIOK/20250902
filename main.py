@@ -286,9 +286,7 @@ async def main():
     # print("data:", data)
     # account_bandwidth = await get_account_bandwidth("TZ9542FYoCqQ1vdx69o4on8CtoSXnSUfst")
     # print("account_bandwidth:",account_bandwidth)
-    # await start()
-    a = 0.000001
-    print(f"{Decimal(str(a))}")
+    await start()
     ...
 
 
