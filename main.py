@@ -1,5 +1,6 @@
 from decimal import Decimal
 import decimal
+from math import log
 import os
 import aiohttp
 import asyncio
@@ -42,7 +43,7 @@ ADDRESS_A = ADDRESS_A_KEY.public_key.to_base58check_address()
 ADDRESS_B = ADDRESS_B_KEY.public_key.to_base58check_address()
 
 TRON_DECIMAL = Decimal("1e6")
-TRON_MINIMUM_BANDWIDTH = Decimal("270000")
+
 TELEGRAM_BOT = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 TRON = AsyncTron(AsyncHTTPProvider(api_key=TRON_API_KEY))
 
@@ -89,7 +90,7 @@ async def transfer_trx(transaction_sign: TransactionSign):
             to=transaction_sign.to_address,
             amount=transaction_sign.amount,
         ).build()
-
+        logger.info(f"开始转账 {transaction_sign.from_address}->{transaction_sign.to_address}:{transaction_sign.amount}")
         txn = await transaction.sign(transaction_sign.sign_key).broadcast()
         await txn.wait()
         logger.success(f"🚀 转账成功 txID:{txn.txid}")
@@ -147,6 +148,8 @@ async def send_trx(account_balance: Decimal | None):
     """调用转账"""
     assert RECEIVE_ADDRESS, "RECEIVE_ADDRESS is None."
     assert TELEGRAM_USER_ID, "TELEGRAM_USER_ID is None."
+    TRON_MINIMUM_BANDWIDTH = Decimal("268000")
+
     try:
         if account_balance is None:
             try:
@@ -157,8 +160,13 @@ async def send_trx(account_balance: Decimal | None):
 
         if account_balance <= Decimal("0"):
             return
-
+        
+        if account_balance >= (Decimal("1000") * TRON_DECIMAL):
+            TRON_MINIMUM_BANDWIDTH += Decimal("1000")
+        
+        # 获取地址A的带宽
         account_bandwidth = await get_account_bandwidth(ADDRESS_A)
+        # 如果地址A的带宽大于等于带宽
         if account_bandwidth >= TRON_MINIMUM_BANDWIDTH:
             transaction_sign = TransactionSign(
                 from_address=ADDRESS_A,
@@ -269,7 +277,8 @@ async def main():
 
     # data = await TRON.get_account("TPvLhqQERpRju97oZhosuyi9cEZsceQ9b7")
     # print("data:", data)
-
+    # account_bandwidth = await get_account_bandwidth("TZ9542FYoCqQ1vdx69o4on8CtoSXnSUfst")
+    # print("account_bandwidth:",account_bandwidth)
     await start()
     ...
 
