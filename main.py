@@ -1,4 +1,5 @@
 from decimal import Decimal
+import decimal
 import os
 import aiohttp
 import asyncio
@@ -69,13 +70,13 @@ class TransactionSign(BaseModel):
 
 async def get_trx_balance(address: str):
     """获取用户TRX余额"""
-    account_balance = await TRON.get_account_balance(ADDRESS_A)
+    account_balance = await TRON.get_account_balance(address)
     return Decimal(str(account_balance)) * TRON_DECIMAL
 
 
 async def get_account_bandwidth(address: str):
     """获取用户的带宽余额"""
-    account_bandwidth = await TRON.get_bandwidth(ADDRESS_A)
+    account_bandwidth = await TRON.get_bandwidth(address)
     return Decimal(str(account_bandwidth)) * Decimal("1000")
 
 
@@ -132,14 +133,23 @@ async def proxy_gas(transaction_sign: TransactionSign, proxy_type: typing.Litera
         await transfer_trx(transaction_sign)
 
 
-async def send_trx():
+async def balance_transfer():
+    account_balance = await get_trx_balance(ADDRESS_A)
+    await send_trx(account_balance)
+
+
+async def send_trx(account_balance: Decimal | None):
     """调用转账"""
     assert RECEIVE_ADDRESS, "RECEIVE_ADDRESS is None."
     assert TELEGRAM_USER_ID, "TELEGRAM_USER_ID is None."
 
-    account_balance = await get_trx_balance(ADDRESS_A)
-    account_bandwidth = await get_account_bandwidth(ADDRESS_A)
+    if account_balance is None:
+        account_balance = await get_trx_balance(ADDRESS_A)
+    
+    if account_balance <= Decimal("0"):
+        return
 
+    account_bandwidth = await get_account_bandwidth(ADDRESS_A)
     if account_bandwidth >= TRON_MINIMUM_BANDWIDTH:
         transaction_sign = TransactionSign(
             from_address=ADDRESS_A,
@@ -186,6 +196,7 @@ async def get_now_block():
                     last_time_block_number = block_number
                 else:
                     await asyncio.sleep(1.5)
+                    asyncio.create_task(send_trx(account_balance=None)) # 自动将余额转出
                     continue
 
                 logger.info(f"当前区块:{last_time_block_number}")
@@ -211,7 +222,7 @@ async def start():
     async for transaction in get_now_block():
         # 如果有人向ADDRESS_A转账则进行转出TRX
         if transaction.to_address == ADDRESS_A:
-            asyncio.create_task(send_trx())
+            asyncio.create_task(send_trx(account_balance=None))
 
 
 async def main():
