@@ -202,7 +202,7 @@ async def get_now_block():
     async with aiohttp.ClientSession() as session:
         last_time_block_number: int = 0
         account_balance = Decimal("0")
-        comparison_amount = (Decimal("0.268") * TRON_DECIMAL)
+        comparison_amount = Decimal("0.268") * TRON_DECIMAL
         while True:
             async with session.get(url=url, headers=headers, ssl=False) as response:
                 if response.status != 200:
@@ -216,12 +216,15 @@ async def get_now_block():
                     last_time_block_number = block_number
                 else:
                     await asyncio.sleep(1.5)
-                    a_balance = await get_trx_balance(ADDRESS_A)
-                    # 如果获取的余额不等于全局余额则将获取的余额给全局余额
-                    # 如果获取的余额不等于全局余额并且获取的余额小于0.268则提示用户
-                    if a_balance != account_balance and a_balance < comparison_amount:
-                        account_balance = a_balance
-                        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{Decimal(str(a))}") # type: ignore
+                    try:
+                        a_balance = await get_trx_balance(ADDRESS_A)
+                        # 如果获取的余额不等于全局余额则将获取的余额给全局余额
+                        # 如果获取的余额不等于全局余额并且获取的余额小于0.268则提示用户
+                        if a_balance != account_balance and a_balance < comparison_amount:
+                            account_balance = a_balance
+                            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{Decimal(str(a))}")  # type: ignore
+                    except AddressNotFound:
+                        continue
                     asyncio.create_task(balance_transfer())  # 自动将余额转出
                     continue
 
