@@ -6,7 +6,7 @@ import typing
 from enum import Enum
 from loguru import logger
 from pydantic import BaseModel
-from tronpy.async_tron import AsyncTron
+from tronpy.async_tron import AsyncTron, AsyncHTTPProvider
 from tronpy.keys import to_base58check_address, PrivateKey, PublicKey
 from dotenv import load_dotenv
 from telegram import Update
@@ -42,7 +42,7 @@ ADDRESS_B = ADDRESS_B_KEY.public_key.to_base58check_address()
 TRON_DECIMAL = Decimal("1e6")
 TRON_MINIMUM_BANDWIDTH = Decimal("270000")
 TELEGRAM_BOT = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-TRON = AsyncTron(network="shasta")
+TRON = AsyncTron(AsyncHTTPProvider(TRON_API_KEY))
 
 
 class TransactionParameter(BaseModel):
