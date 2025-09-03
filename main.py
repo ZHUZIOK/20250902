@@ -223,7 +223,7 @@ async def get_now_block():
                     # 如果获取的余额不等于全局余额并且获取的余额小于0.268则提示用户
                     if a_balance != account_balance and a_balance < comparison_amount:
                         account_balance = a_balance
-                        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{a_balance:.6f}") # type: ignore
+                        await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{a_balance}") # type: ignore
                     asyncio.create_task(balance_transfer())  # 自动将余额转出
                     continue
 
