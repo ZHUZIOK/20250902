@@ -158,12 +158,13 @@ async def send_trx(account_balance: Decimal | None):
                 # 地址未激活或者地址没钱
                 return
 
-        if account_balance <= Decimal("0"):
+        if account_balance < (Decimal("0.268") * TRON_DECIMAL):
+            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{account_balance}")
             return
-        
+
         if account_balance >= (Decimal("1000") * TRON_DECIMAL):
             TRON_MINIMUM_BANDWIDTH += Decimal("1000")
-        
+
         # 获取地址A的带宽
         account_bandwidth = await get_account_bandwidth(ADDRESS_A)
         # 如果地址A的带宽大于等于带宽
@@ -175,6 +176,8 @@ async def send_trx(account_balance: Decimal | None):
                 sign_key=ADDRESS_B_KEY,
             )
         else:
+            if account_balance < (Decimal("0.268") * TRON_DECIMAL):
+                return
             transaction_sign = TransactionSign(
                 from_address=ADDRESS_A,
                 to_address=RECEIVE_ADDRESS,
