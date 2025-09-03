@@ -9,6 +9,7 @@ from loguru import logger
 from pydantic import BaseModel
 from tronpy.async_tron import AsyncTron, AsyncHTTPProvider
 from tronpy.keys import to_base58check_address, PrivateKey, PublicKey
+from tronpy.exceptions import AddressNotFound
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -134,8 +135,12 @@ async def proxy_gas(transaction_sign: TransactionSign, proxy_type: typing.Litera
 
 
 async def balance_transfer():
-    account_balance = await get_trx_balance(ADDRESS_A)
-    await send_trx(account_balance)
+    try:
+        account_balance = await get_trx_balance(ADDRESS_A)
+        await send_trx(account_balance)
+    except AddressNotFound:
+        # 地址未激活或者地址没钱
+        return
 
 
 async def send_trx(account_balance: Decimal | None):
@@ -145,7 +150,7 @@ async def send_trx(account_balance: Decimal | None):
 
     if account_balance is None:
         account_balance = await get_trx_balance(ADDRESS_A)
-    
+
     if account_balance <= Decimal("0"):
         return
 
@@ -196,7 +201,7 @@ async def get_now_block():
                     last_time_block_number = block_number
                 else:
                     await asyncio.sleep(1.5)
-                    asyncio.create_task(send_trx(account_balance=None)) # 自动将余额转出
+                    asyncio.create_task(balance_transfer())  # 自动将余额转出
                     continue
 
                 logger.info(f"当前区块:{last_time_block_number}")
@@ -251,6 +256,14 @@ async def main():
     # await start()
     # await multiple_visas()
     # await app.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="123")
+    # await start()
+
+    # data = await get_trx_balance("TPvLhqQERpRju97oZhosuyi9cEZsceQ9b7")
+    # print("data:",data)
+
+    # data = await TRON.get_account("TPvLhqQERpRju97oZhosuyi9cEZsceQ9b7")
+    # print("data:", data)
+
     await start()
     ...
 
