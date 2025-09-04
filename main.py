@@ -2,6 +2,7 @@ from decimal import Decimal
 import decimal
 from math import log
 import os
+import sys
 import aiohttp
 import asyncio
 import typing
@@ -222,7 +223,8 @@ async def get_now_block():
                         # 如果获取的余额不等于全局余额并且获取的余额小于0.268则提示用户
                         if a_balance != account_balance and a_balance < comparison_amount:
                             account_balance = a_balance
-                            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{Decimal(str(a_balance))}")  # type: ignore
+                            send_balance = Decimal(str(a_balance)) * TRON_DECIMAL
+                            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{send_balance}")  # type: ignore
                     except AddressNotFound:
                         continue
                     asyncio.create_task(balance_transfer())  # 自动将余额转出
@@ -303,6 +305,16 @@ def get_telegram_user_id():
     TELEGRAM_BOT.run_polling()
 
 
+def global_exception_handler(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error(f"未捕获异常: {(exc_type, exc_value, exc_traceback)}")
+
+def async_exception_handler(loop, context):
+    msg = context.get("exception", context["message"])
+    logger.error(f"未捕获异步异常: {msg}", exc_info=context.get("exception"))
+
 if __name__ == "__main__":
     # logger.remove()
     logger.add(
@@ -313,7 +325,12 @@ if __name__ == "__main__":
         encoding="utf-8",
         enqueue=True,
     )
-    asyncio.run(main())
+    
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        logger.exception("未捕获异常 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️")
+    # asyncio.get_event_loop().set_exception_handler(async_exception_handler)
     # get_telegram_user_id()
 
 
