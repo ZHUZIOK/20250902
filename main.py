@@ -305,15 +305,14 @@ def get_telegram_user_id():
     TELEGRAM_BOT.run_polling()
 
 
-def global_exception_handler(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.error(f"未捕获异常: {(exc_type, exc_value, exc_traceback)}")
+async def send_err():
+    await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"❌ 系统关闭")  # type: ignore
+
 
 def async_exception_handler(loop, context):
     msg = context.get("exception", context["message"])
     logger.error(f"未捕获异步异常: {msg}", exc_info=context.get("exception"))
+
 
 if __name__ == "__main__":
     # logger.remove()
@@ -324,11 +323,12 @@ if __name__ == "__main__":
         compression="zip",  # 旧日志压缩
         encoding="utf-8",
         enqueue=True,
-    )
-    
+    ) 
+
     try:
         asyncio.run(main())
     except Exception as e:
+        asyncio.run(send_err())
         logger.exception("未捕获异常 ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️")
     # asyncio.get_event_loop().set_exception_handler(async_exception_handler)
     # get_telegram_user_id()
