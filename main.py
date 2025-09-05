@@ -12,6 +12,7 @@ from tronpy.exceptions import AddressNotFound
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
 load_dotenv()
 
 RECEIVE_ADDRESS = os.getenv("RECEIVE_ADDRESS")
@@ -185,7 +186,6 @@ async def send_trx(account_balance: Decimal | None):
         # https://shasta-tronscan.on.btfs.io/#/transaction/
         # https://tronscan.org/#/transaction/
         if txID is None:
-            await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="❌ 转账失败")
             return
         text = f"🚀 转账成功 txID: https://tronscan.org/#/transaction/{txID}"
         await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=text)
@@ -318,7 +318,7 @@ def async_exception_handler(loop, context):
 
 if __name__ == "__main__":
     # logger.remove()
-    
+
     logger.add(
         sink="logs/app.log",
         rotation="1 day",  # 按天切分
