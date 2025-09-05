@@ -12,7 +12,7 @@ from tronpy.exceptions import AddressNotFound
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
+load_dotenv()
 
 RECEIVE_ADDRESS = os.getenv("RECEIVE_ADDRESS")
 TRON_API_KEY = os.getenv("TRON_API_KEY")
@@ -318,7 +318,7 @@ def async_exception_handler(loop, context):
 
 if __name__ == "__main__":
     # logger.remove()
-    load_dotenv()
+    
     logger.add(
         sink="logs/app.log",
         rotation="1 day",  # 按天切分
