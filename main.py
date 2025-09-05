@@ -83,7 +83,7 @@ async def transfer_trx(transaction_sign: TransactionSign):
     """转账TRX函数"""
     try:
         if transaction_sign.amount <= 0:
-            logger.info(f"transfer_trx 地址A 余额为0.")
+            logger.info(f"transfer_trx transaction_sign.amount <= 0 地址A 余额为0.")
             return
         transaction = await TRON.trx.transfer(
             from_=transaction_sign.from_address,
@@ -292,8 +292,8 @@ async def main():
     # account_bandwidth = await get_account_bandwidth("TZ9542FYoCqQ1vdx69o4on8CtoSXnSUfst")
     # print("account_bandwidth:",account_bandwidth)
 
-    print(Decimal("0.268") * TRON_DECIMAL)
-    # await start()
+    # print(Decimal("0.268") * TRON_DECIMAL)
+    await start()
     ...
 
 
