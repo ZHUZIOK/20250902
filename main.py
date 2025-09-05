@@ -136,15 +136,6 @@ async def proxy_gas(transaction_sign: TransactionSign, proxy_type: typing.Litera
         await transfer_trx(transaction_sign)
 
 
-async def balance_transfer():
-    try:
-        account_balance = await get_trx_balance(ADDRESS_A)
-        await send_trx(account_balance)
-    except AddressNotFound:
-        # 地址未激活或者地址没钱
-        return
-
-
 async def send_trx(account_balance: Decimal | None):
     """调用转账"""
     assert RECEIVE_ADDRESS, "RECEIVE_ADDRESS is None."
@@ -204,7 +195,7 @@ async def get_now_block():
     url = "https://api.trongrid.io/wallet/getnowblock"  # "https://api.trongrid.io/wallet/getnowblock"
     headers = {
         "accept": "application/json",
-        "TRON-PRO-API-KEY": TRON_API_KEY,
+        "TRON-PRO-API-KEY": "440bad84-1ebe-47a5-88cd-72f9d8041c68",
     }
     async with aiohttp.ClientSession() as session:
         last_time_block_number: int = 0
@@ -212,17 +203,13 @@ async def get_now_block():
         comparison_amount = Decimal("0.268") * TRON_DECIMAL
         while True:
             async with session.get(url=url, headers=headers, ssl=False) as response:
-                if response.status != 200:
-                    logger.error(f"请求状态码不是200:{await response.json()}")
-                    await asyncio.sleep(1.5)
-                    return
                 json_data = await response.json()
                 block_number: int = json_data["block_header"]["raw_data"]["number"]
 
                 if block_number > last_time_block_number:
                     last_time_block_number = block_number
                 else:
-                    await asyncio.sleep(1.5)
+                    await asyncio.sleep(2.5)
                     try:
                         a_balance = await get_trx_balance(ADDRESS_A)
                         # 如果获取的余额不等于全局余额则将获取的余额给全局余额
@@ -233,7 +220,7 @@ async def get_now_block():
                             await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{send_balance}")  # type: ignore
                     except AddressNotFound:
                         continue
-                    asyncio.create_task(balance_transfer())  # 自动将余额转出
+                    asyncio.create_task(send_trx(account_balance))  # 自动将余额转出
                     continue
 
                 logger.info(f"当前区块:{last_time_block_number}")
