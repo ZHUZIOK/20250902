@@ -1,8 +1,5 @@
 from decimal import Decimal
-import decimal
-from math import log
 import os
-import sys
 import aiohttp
 import asyncio
 import typing
@@ -10,13 +7,12 @@ from enum import Enum
 from loguru import logger
 from pydantic import BaseModel
 from tronpy.async_tron import AsyncTron, AsyncHTTPProvider
-from tronpy.keys import to_base58check_address, PrivateKey, PublicKey
+from tronpy.keys import to_base58check_address, PrivateKey
 from tronpy.exceptions import AddressNotFound
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-load_dotenv()
 
 RECEIVE_ADDRESS = os.getenv("RECEIVE_ADDRESS")
 TRON_API_KEY = os.getenv("TRON_API_KEY")
@@ -86,6 +82,9 @@ async def get_account_bandwidth(address: str):
 async def transfer_trx(transaction_sign: TransactionSign):
     """转账TRX函数"""
     try:
+        if transaction_sign.amount <= 0:
+            logger.info(f"transfer_trx 地址A 余额为0.")
+            return
         transaction = await TRON.trx.transfer(
             from_=transaction_sign.from_address,
             to=transaction_sign.to_address,
@@ -187,6 +186,7 @@ async def send_trx(account_balance: Decimal | None):
         # https://tronscan.org/#/transaction/
         if txID is None:
             await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text="❌ 转账失败")
+            return
         text = f"🚀 转账成功 txID: https://tronscan.org/#/transaction/{txID}"
         await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=text)
     except Exception as error:
@@ -291,7 +291,9 @@ async def main():
     # print("data:", data)
     # account_bandwidth = await get_account_bandwidth("TZ9542FYoCqQ1vdx69o4on8CtoSXnSUfst")
     # print("account_bandwidth:",account_bandwidth)
-    await start()
+
+    print(Decimal("0.268") * TRON_DECIMAL)
+    # await start()
     ...
 
 
@@ -316,6 +318,7 @@ def async_exception_handler(loop, context):
 
 if __name__ == "__main__":
     # logger.remove()
+    load_dotenv()
     logger.add(
         sink="logs/app.log",
         rotation="1 day",  # 按天切分
@@ -323,7 +326,7 @@ if __name__ == "__main__":
         compression="zip",  # 旧日志压缩
         encoding="utf-8",
         enqueue=True,
-    ) 
+    )
 
     try:
         asyncio.run(main())
