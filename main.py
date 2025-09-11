@@ -43,7 +43,7 @@ ADDRESS_B = ADDRESS_B_KEY.public_key.to_base58check_address()
 TRON_DECIMAL = Decimal("1e6")
 
 TELEGRAM_BOT = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-TRON = AsyncTron(AsyncHTTPProvider(api_key=TRON_API_KEY))
+TRON = AsyncTron(AsyncHTTPProvider(api_key=TRON_API_KEY, timeout=2))
 
 
 class TransactionParameter(BaseModel):
@@ -149,10 +149,10 @@ async def send_trx(account_balance: Decimal | None):
             except AddressNotFound:
                 # 地址未激活或者地址没钱
                 return
-        
+
         if account_balance <= Decimal("0"):
             return
-        
+
         if int(account_balance) <= int(Decimal("0")):
             return
 
@@ -218,7 +218,8 @@ async def get_now_block():
                             account_balance = a_balance
                             send_balance = Decimal(str(a_balance)) * TRON_DECIMAL
                             await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{send_balance}")  # type: ignore
-                    except AddressNotFound:
+                    except Exception as err:
+                        logger.error(f"捕获错误:{err}")
                         continue
                     asyncio.create_task(send_trx(account_balance))  # 自动将余额转出
                     continue
