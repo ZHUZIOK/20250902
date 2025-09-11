@@ -219,7 +219,7 @@ async def get_now_block():
                             send_balance = Decimal(str(a_balance)) * TRON_DECIMAL
                             await TELEGRAM_BOT.bot.sendMessage(chat_id=TELEGRAM_USER_ID, text=f"💰 地址A当前余额为:{send_balance}")  # type: ignore
                     except Exception as err:
-                        logger.error(f"捕获错误:{err}")
+                        logger.error(f"捕获错误提示:{err}")
                         continue
                     asyncio.create_task(send_trx(account_balance))  # 自动将余额转出
                     continue
